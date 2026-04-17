@@ -1,8 +1,9 @@
 import { getDeck } from "@/app/actions/deck";
 import { getCards, createCard, deleteCard } from "@/app/actions/card";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import CsvImporter from "@/components/CsvImporter";
+import { CreateCardForm } from "@/components/CreateCardForm";
 
 export const dynamic = 'force-dynamic';
 
@@ -31,27 +32,7 @@ export default async function DeckDetailPage({ params }: { params: { id: string 
         {/* Manual Creation Form */}
         <div className="flex-1 w-full bg-card border border-border rounded p-6 shadow-xl">
           <h2 className="text-sm font-mono text-muted mb-4 uppercase tracking-wider">Add Card (Manual)</h2>
-          <form action={createCard} className="flex flex-col gap-4">
-            <input type="hidden" name="deck_id" value={deck.id} />
-            <textarea 
-              name="front_text" 
-              placeholder="Front side (e.g. What is the Central Limit Theorem?)" 
-              className="bg-transparent border border-border p-3 rounded text-sm font-mono focus:outline-none focus:border-accent text-foreground min-h-[80px]"
-              required
-            />
-            <textarea 
-              name="back_text" 
-              placeholder="Back side..." 
-              className="bg-transparent border border-border p-3 rounded text-sm font-mono focus:outline-none focus:border-accent text-foreground min-h-[80px]"
-              required
-            />
-            <button 
-              type="submit" 
-              className="bg-accent text-black px-4 py-2 rounded font-bold font-mono text-sm self-start flex items-center gap-2 hover:opacity-90 transition-opacity"
-            >
-              <Plus size={16} /> Add Card
-            </button>
-          </form>
+          <CreateCardForm deckId={deck.id} />
         </div>
 
         {/* CSV Importer */}
