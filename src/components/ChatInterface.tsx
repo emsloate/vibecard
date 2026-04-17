@@ -3,6 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { Send, Bot, User, Wand2 } from 'lucide-react';
 import { useState } from 'react';
+import { VibeLogger } from '@/utils/VibeLogger';
 
 export function ChatInterface() {
   const { messages, sendMessage, status } = useChat();
@@ -22,6 +23,7 @@ export function ChatInterface() {
     if (messages.length === 0) return;
     
     setIsHarvesting(true);
+    VibeLogger.info('Triggering manual card harvest from UI');
     const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${getMessageText(m)}`).join('\n');
     
     try {
@@ -31,10 +33,12 @@ export function ChatInterface() {
         body: JSON.stringify({ transcript }),
       });
       if (res.ok) {
-        // Success handled by server revalidating the path or the user seeing the new cards
+        VibeLogger.info('Harvest UI request succeeded');
+      } else {
+        VibeLogger.error(`Harvest UI request failed with status: ${res.status}`);
       }
     } catch (error) {
-      console.error('Failed to harvest', error);
+      VibeLogger.error('Failed to harvest', error);
     } finally {
       setIsHarvesting(false);
     }

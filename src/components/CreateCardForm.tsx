@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createCard } from '@/app/actions/card';
 import { Plus, Sparkles } from 'lucide-react';
+import { VibeLogger } from '@/utils/VibeLogger';
 
 interface CreateCardFormProps {
   deckId: string;
@@ -43,9 +44,11 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
         if (response.ok) {
           const data = await response.json();
           setSuggestion(data.text);
+        } else {
+          VibeLogger.error(`Autocomplete UI request failed with status: ${response.status}`);
         }
       } catch (error) {
-        console.error('Failed to get autocomplete suggestion', error);
+        VibeLogger.error('Failed to get autocomplete suggestion', error);
       } finally {
         setIsPredicting(false);
       }

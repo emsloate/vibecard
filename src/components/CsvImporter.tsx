@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Papa from 'papaparse';
 import { Upload } from 'lucide-react';
 import { bulkInsertCards } from '@/app/actions/card';
+import { VibeLogger } from '@/utils/VibeLogger';
 
 interface CsvImporterProps {
   deckId: string;
@@ -20,6 +21,7 @@ export default function CsvImporter({ deckId }: CsvImporterProps) {
 
     setIsImporting(true);
     setError(null);
+    VibeLogger.info(`Starting CSV import: ${file.name}`);
 
     Papa.parse(file, {
       skipEmptyLines: true,
@@ -49,17 +51,20 @@ export default function CsvImporter({ deckId }: CsvImporterProps) {
           });
 
           await bulkInsertCards(cardsToInsert);
+          VibeLogger.info(`Successfully imported ${cardsToInsert.length} cards from CSV`);
           
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
         } catch (err: any) {
+          VibeLogger.error('Failed to import CSV cards', err);
           setError(err.message || "Failed to import cards");
         } finally {
           setIsImporting(false);
         }
       },
       error: (err) => {
+        VibeLogger.error('CSV Parsing Error', err);
         setError("Failed to parse CSV file: " + err.message);
         setIsImporting(false);
       }

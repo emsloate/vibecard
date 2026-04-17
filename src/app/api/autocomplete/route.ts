@@ -1,5 +1,6 @@
 import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
+import { VibeLogger } from '@/utils/VibeLogger';
 
 export async function POST(req: Request) {
   try {
@@ -15,9 +16,10 @@ export async function POST(req: Request) {
       prompt: `Front: ${frontText}`,
     });
 
+    VibeLogger.info(`Generated autocomplete for: "${frontText.substring(0, 20)}..."`);
     return Response.json({ text });
   } catch (error) {
-    console.error('Autocomplete Error:', error);
+    VibeLogger.error('Autocomplete Error:', error);
     return new Response('Internal Server Error', { status: 500 });
   }
 }
