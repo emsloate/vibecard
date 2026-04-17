@@ -20,19 +20,38 @@ export async function getCards(deckId: string) {
   return data
 }
 
+export async function getStagedCards() {
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('cards')
+    .select('*')
+    .is('deck_id', null)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    VibeLogger.error('Failed to fetch staged cards', error)
+    throw new Error('Failed to fetch staged cards')
+  }
+
+  return data
+}
+
 export async function createCard(formData: FormData) {
-  const deck_id = formData.get('deck_id') as string
+  const deck_id = formData.get('deck_id') as string | null
   const front_text = formData.get('front_text') as string
   const back_text = formData.get('back_text') as string
 
-  if (!deck_id || !front_text || !back_text) {
+  if (!front_text || !back_text) {
     throw new Error('Missing required fields')
   }
+
+  // Treat 'null' string as actual null
+  const finalDeckId = (deck_id && deck_id !== 'null') ? deck_id : null;
 
   const supabase = createServerSupabaseClient()
   const { data, error } = await supabase
     .from('cards')
-    .insert([{ deck_id, front_text, back_text }])
+    .insert([{ deck_id: finalDeckId, front_text, back_text }])
     .select()
     .single()
 
@@ -41,11 +60,15 @@ export async function createCard(formData: FormData) {
     throw new Error('Failed to create card')
   }
 
-  revalidatePath(`/decks/${deck_id}`)
+  if (finalDeckId) {
+    revalidatePath(`/decks/${finalDeckId}`)
+  } else {
+    revalidatePath('/')
+  }
   return data
 }
 
-export async function deleteCard(id: string, deckId: string) {
+export async function deleteCard(id: string, deckId?: string | null) {
   const supabase = createServerSupabaseClient()
   const { error } = await supabase
     .from('cards')
@@ -57,11 +80,33 @@ export async function deleteCard(id: string, deckId: string) {
     throw new Error('Failed to delete card')
   }
 
+  if (deckId && deckId !== 'null') {
+    revalidatePath(`/decks/${deckId}`)
+  } else {
+    revalidatePath('/')
+  }
+}
+
+export async function approveCard(id: string, deckId: string) {
+  if (!deckId) throw new Error('Deck ID is required to approve a card');
+
+  const supabase = createServerSupabaseClient()
+  const { error } = await supabase
+    .from('cards')
+    .update({ deck_id: deckId })
+    .eq('id', id)
+
+  if (error) {
+    VibeLogger.error(`Failed to approve card ${id}`, error)
+    throw new Error('Failed to approve card')
+  }
+
+  revalidatePath('/')
   revalidatePath(`/decks/${deckId}`)
 }
 
 export async function bulkInsertCards(cards: Array<{
-  deck_id: string;
+  deck_id?: string | null;
   front_text: string;
   back_text: string;
   ease_factor?: number;
@@ -69,9 +114,15 @@ export async function bulkInsertCards(cards: Array<{
   reps?: number;
 }>) {
   const supabase = createServerSupabaseClient()
+  
+  const mappedCards = cards.map(c => ({
+    ...c,
+    deck_id: c.deck_id === 'null' ? null : c.deck_id
+  }));
+
   const { data, error } = await supabase
     .from('cards')
-    .insert(cards)
+    .insert(mappedCards)
     .select()
 
   if (error) {
@@ -79,9 +130,12 @@ export async function bulkInsertCards(cards: Array<{
     throw new Error('Failed to bulk insert cards')
   }
 
-  if (cards.length > 0) {
-    revalidatePath(`/decks/${cards[0].deck_id}`)
-  }
+  // Revalidate appropriately
+  const hasStaged = mappedCards.some(c => !c.deck_id);
+  if (hasStaged) revalidatePath('/');
+  
+  const validDeckIds = [...new Set(mappedCards.map(c => c.deck_id).filter(Boolean))];
+  validDeckIds.forEach(id => revalidatePath(`/decks/${id}`));
   
   return data
 }

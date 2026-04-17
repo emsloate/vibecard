@@ -1,35 +1,24 @@
-import { VibeLogger } from "@/utils/VibeLogger";
+import { ChatInterface } from "@/components/ChatInterface";
+import { StagingQueue } from "@/components/StagingQueue";
+
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
-  // Fire some test logs to verify VibeLogger is working
-  VibeLogger.info("VibeCard application initialized. Welcome to the Terminal-Density UI.");
-  VibeLogger.logCardGeneration("What is the Central Limit Theorem?", "The phenomenon where...", 0.95);
-
   return (
-    <div className="flex min-h-full flex-col items-center justify-center p-8 sm:p-24 font-sans bg-background text-foreground">
-      <div className="max-w-2xl w-full border border-border p-8 rounded-md bg-background shadow-2xl">
-        <h1 className="text-3xl font-bold mb-4 font-mono text-accent">{"<VibeCard />"}</h1>
-        <p className="mb-6 text-muted">
-          The Zero-Friction AI-Native SRS Platform. Phase 1 initialized.
-        </p>
-        
-        <div className="bg-card p-4 rounded border border-border font-mono text-sm mb-6">
-          <p className="text-muted mb-2"># Terminal-Density Spec Test</p>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b border-border">
-            <span className="mb-1 sm:mb-0"><span className="text-accent mr-2">Front:</span>What is the primary effect of an L1 penalty in Lasso regression?</span>
-          </div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2">
-            <span><span className="text-accent mr-2">Back:</span><span className="text-muted">It can shrink coefficients to exactly zero, performing automatic feature selection.</span></span>
-          </div>
+    <div className="flex h-full p-6 sm:p-8 gap-8 max-w-[1600px] mx-auto overflow-hidden">
+      {/* Left Pane: Chat-to-Card Factory */}
+      <div className="flex-1 w-1/2 min-w-[300px] h-full flex flex-col">
+        <h1 className="text-2xl font-bold font-mono text-accent mb-4">{"<Factory />"}</h1>
+        <div className="flex-1 min-h-0">
+          <ChatInterface />
         </div>
+      </div>
 
-        <div className="flex gap-4 font-mono text-sm">
-          <button className="px-4 py-2 bg-accent text-black font-bold hover:opacity-90 transition-opacity rounded">
-            [Approve]
-          </button>
-          <button className="px-4 py-2 border border-border text-foreground hover:bg-card-hover transition-colors rounded">
-            [Trash]
-          </button>
+      {/* Right Pane: Staging Area */}
+      <div className="flex-1 w-1/2 min-w-[350px] h-full flex flex-col">
+        <h1 className="text-2xl font-bold font-mono text-foreground mb-4 opacity-0 select-none hidden md:block">{"<Spacing />"}</h1>
+        <div className="flex-1 min-h-0">
+          <StagingQueue />
         </div>
       </div>
     </div>
