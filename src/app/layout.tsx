@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
+import Sidebar from "@/components/Sidebar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,9 +29,20 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        {children}
+      <body className="h-full flex bg-background text-foreground font-sans">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Sidebar />
+          <main className="flex-1 h-full overflow-y-auto">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );
