@@ -1,21 +1,21 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { Send, Bot, User, Wand2 } from 'lucide-react';
+import { Send, Bot, User, Wand2, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { VibeLogger } from '@/utils/VibeLogger';
 
 export function ChatInterface() {
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status, error, clearError } = useChat();
   const [input, setInput] = useState('');
   const [isHarvesting, setIsHarvesting] = useState(false);
   const isLoading = status === 'submitted' || status === 'streaming';
 
   const getMessageText = (m: any) => {
-    if (m.content) return m.content;
     if (m.parts) {
       return m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('');
     }
+    if (m.content) return m.content;
     return '';
   };
 
@@ -47,7 +47,9 @@ export function ChatInterface() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] });
+    clearError();
+    // v3 useChat: sendMessage accepts { text: string }
+    sendMessage({ text: input });
     setInput('');
   };
 
@@ -71,9 +73,18 @@ export function ChatInterface() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded p-3 flex items-start gap-2 text-sm font-mono text-red-400">
+            <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Chat Error</p>
+              <p className="text-xs mt-1 opacity-80">{error.message || 'An unexpected error occurred. Check your API key configuration.'}</p>
+            </div>
+          </div>
+        )}
+        {messages.length === 0 && !error ? (
           <div className="h-full flex items-center justify-center text-center text-muted text-sm font-mono p-8">
-            Start chatting about a topic you want to learn. When you are ready, click "Harvest Cards" to automatically extract flashcards to your Staging Queue.
+            Start chatting about a topic you want to learn. When you are ready, click &quot;Harvest Cards&quot; to automatically extract flashcards to your Staging Queue.
           </div>
         ) : (
           messages.map(m => (

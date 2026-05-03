@@ -139,3 +139,106 @@ export async function bulkInsertCards(cards: Array<{
   
   return data
 }
+
+export async function getDueCards(deckId: string) {
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('cards')
+    .select('*')
+    .eq('deck_id', deckId)
+    .lte('next_review', new Date().toISOString())
+    .order('next_review', { ascending: true })
+
+  if (error) {
+    VibeLogger.error(`Failed to fetch due cards for deck ${deckId}`, error)
+    throw new Error('Failed to fetch due cards')
+  }
+
+  return data
+}
+
+/**
+ * SM-2 Spaced Repetition Algorithm
+ * 
+ * Quality ratings:
+ *   0 = Again (complete failure, reset)
+ *   1 = Hard  (correct but with significant difficulty)
+ *   2 = Good  (correct with some effort)
+ *   3 = Easy  (effortless recall)
+ */
+export async function gradeCard(cardId: string, quality: number, deckId: string) {
+  if (quality < 0 || quality > 3) throw new Error('Quality must be 0-3');
+
+  const supabase = createServerSupabaseClient()
+
+  // Fetch current card state
+  const { data: card, error: fetchError } = await supabase
+    .from('cards')
+    .select('ease_factor, interval, reps')
+    .eq('id', cardId)
+    .single()
+
+  if (fetchError || !card) {
+    VibeLogger.error(`Failed to fetch card ${cardId} for grading`, fetchError)
+    throw new Error('Failed to fetch card for grading')
+  }
+
+  let { ease_factor, interval, reps } = card;
+
+  if (quality === 0) {
+    // Again: reset progress
+    reps = 0;
+    interval = 0;
+    ease_factor = Math.max(1.3, ease_factor - 0.2);
+  } else {
+    // Correct answer — advance through SM-2 intervals
+    reps += 1;
+
+    if (reps === 1) {
+      interval = 1;
+    } else if (reps === 2) {
+      interval = 6;
+    } else {
+      interval = Math.round(interval * ease_factor);
+    }
+
+    // Adjust ease factor based on quality (mapped from 0-3 to SM-2's 0-5 scale)
+    // quality 1 (Hard) -> SM-2 q=3, quality 2 (Good) -> SM-2 q=4, quality 3 (Easy) -> SM-2 q=5
+    const q = quality + 2; // map to SM-2 scale (3, 4, 5)
+    ease_factor = ease_factor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+    ease_factor = Math.max(1.3, ease_factor);
+
+    // Easy bonus: multiply interval by 1.3 for effortless recall
+    if (quality === 3) {
+      interval = Math.round(interval * 1.3);
+    }
+  }
+
+  // Calculate next review date
+  const next_review = new Date();
+  if (interval === 0) {
+    // Show again soon (1 minute from now for "Again")
+    next_review.setMinutes(next_review.getMinutes() + 1);
+  } else {
+    next_review.setDate(next_review.getDate() + interval);
+  }
+
+  const { error: updateError } = await supabase
+    .from('cards')
+    .update({
+      ease_factor: parseFloat(ease_factor.toFixed(2)),
+      interval,
+      reps,
+      next_review: next_review.toISOString(),
+    })
+    .eq('id', cardId)
+
+  if (updateError) {
+    VibeLogger.error(`Failed to grade card ${cardId}`, updateError)
+    throw new Error('Failed to grade card')
+  }
+
+  revalidatePath(`/decks/${deckId}`)
+  return { ease_factor, interval, reps, next_review: next_review.toISOString() }
+}
+

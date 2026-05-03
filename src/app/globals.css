@@ -10,6 +10,7 @@
   --color-muted: var(--text-muted);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-inter); /* Changed to inter for a notepad feel instead of terminal */
+  --animate-fade-in: fade-in 0.3s ease-out;
 }
 
 /* Light Mode (Notepad & Pencil aesthetic) */
@@ -39,3 +40,15 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

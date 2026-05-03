@@ -1,7 +1,7 @@
 import { getDeck } from "@/app/actions/deck";
-import { getCards, createCard, deleteCard } from "@/app/actions/card";
+import { getCards, getDueCards, deleteCard } from "@/app/actions/card";
 import Link from "next/link";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, GraduationCap } from "lucide-react";
 import CsvImporter from "@/components/CsvImporter";
 import { CreateCardForm } from "@/components/CreateCardForm";
 
@@ -13,19 +13,38 @@ export default async function DeckDetailPage({ params }: { params: { id: string 
   // Wait, in Next 15+ `params` is a promise, so we should await it if we have issues.
   const { id } = await params;
 
-  const deck = await getDeck(id);
-  const cards = await getCards(id);
+  const [deck, cards, dueCards] = await Promise.all([
+    getDeck(id),
+    getCards(id),
+    getDueCards(id),
+  ]);
+
+  const dueCount = dueCards?.length || 0;
 
   return (
     <div className="p-8 sm:p-12 max-w-5xl mx-auto h-full flex flex-col">
-      <div className="mb-6 flex items-center gap-4">
-        <Link href="/decks" className="text-muted hover:text-foreground transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold font-mono text-accent">{deck.title}</h1>
-          {deck.description && <p className="text-muted font-mono text-sm mt-1">{deck.description}</p>}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/decks" className="text-muted hover:text-foreground transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold font-mono text-accent">{deck.title}</h1>
+            {deck.description && <p className="text-muted font-mono text-sm mt-1">{deck.description}</p>}
+          </div>
         </div>
+
+        <Link
+          href={`/decks/${deck.id}/study`}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded font-bold font-mono text-sm transition-all duration-200 ${
+            dueCount > 0
+              ? 'bg-accent text-black hover:opacity-90 shadow-lg shadow-accent/20'
+              : 'bg-card-hover border border-border text-muted hover:text-foreground'
+          }`}
+        >
+          <GraduationCap size={18} />
+          <span>Study{dueCount > 0 ? ` (${dueCount} due)` : ''}</span>
+        </Link>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 mb-8 items-start">
