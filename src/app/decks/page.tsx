@@ -11,7 +11,7 @@ export default async function DecksPage() {
     <div className="p-8 sm:p-12 max-w-5xl mx-auto h-full flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold font-mono text-accent">{"<Decks />"}</h1>
+          <h1 className="text-2xl font-bold font-mono text-accent">Decks</h1>
           <p className="text-muted font-mono text-sm mt-1">Manage your study collections</p>
         </div>
       </div>

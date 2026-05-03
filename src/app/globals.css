@@ -9,29 +9,29 @@
   --color-border: var(--border-color);
   --color-muted: var(--text-muted);
   --font-sans: var(--font-inter);
-  --font-mono: var(--font-ibm-plex-mono);
+  --font-mono: var(--font-inter); /* Changed to inter for a notepad feel instead of terminal */
 }
 
-/* Light Mode (Obsidian/Notion 'Paper' aesthetic) */
+/* Light Mode (Notepad & Pencil aesthetic) */
 :root {
-  --background: #f9fafb; /* Softer white / Gray 50 */
-  --foreground: #171717; /* Neutral 900 */
-  --accent: #f59e0b; /* Amber */
-  --card-bg: #ffffff; /* Pure white for cards to pop slightly */
-  --card-hover: #f3f4f6; /* Gray 100 */
-  --border-color: #e5e7eb; /* Gray 200 */
-  --text-muted: #6b7280; /* Gray 500 */
+  --background: #fdfbf7; /* Warm off-white paper */
+  --foreground: #2d3748; /* Dark graphite pencil */
+  --accent: #2563eb; /* Blue ink */
+  --card-bg: #ffffff; /* Crisp white paper slip */
+  --card-hover: #f7f5f0; /* Slightly textured hover */
+  --border-color: #e2e8f0; /* Light blue-gray ruled line */
+  --text-muted: #718096; /* Faded graphite */
 }
 
-/* Dark Mode (Terminal-Density aesthetic) */
+/* Dark Mode (Dark Notebook aesthetic) */
 .dark {
-  --background: #0d0d0d;
-  --foreground: #e5e7eb;
-  --accent: #f59e0b;
-  --card-bg: #050505;
-  --card-hover: #0a0a0a;
-  --border-color: #1f2937; /* Gray 800 */
-  --text-muted: #9ca3af; /* Gray 400 */
+  --background: #1c1917; /* Warm dark stone (Stone 900) */
+  --foreground: #e7e5e4; /* Light warm text (Stone 200) */
+  --accent: #fbbf24; /* Amber/gold pencil accent */
+  --card-bg: #292524; /* Stone 800 cards */
+  --card-hover: #312e2b; /* Stone hover */
+  --border-color: #44403c; /* Stone 700 borders */
+  --text-muted: #a8a29e; /* Stone 400 muted text */
 }
 
 body {

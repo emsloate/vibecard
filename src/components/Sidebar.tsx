@@ -6,8 +6,8 @@ export default function Sidebar() {
   return (
     <div className="w-64 border-r border-border bg-card flex flex-col h-screen">
       <div className="p-4 border-b border-border">
-        <h1 className="text-xl font-bold font-mono text-accent">{"<VibeCard />"}</h1>
-        <p className="text-xs text-muted mt-1">Terminal-Density SRS</p>
+        <h1 className="text-xl font-bold font-mono text-accent">VibeCard</h1>
+        <p className="text-xs text-muted mt-1">Notepad SRS</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-sm">
@@ -29,7 +29,7 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-border flex items-center justify-between">
         <div className="text-xs text-muted font-mono">
-          System: <span className="text-[#10B981]">ONLINE</span>
+          Ready to learn
         </div>
         <ThemeToggle />
       </div>
