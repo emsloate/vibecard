@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createCard } from '@/app/actions/card';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles, RefreshCw } from 'lucide-react';
 import { VibeLogger } from '@/utils/VibeLogger';
+import { LatexText } from './LatexText';
 
 interface CreateCardFormProps {
   deckId: string;
@@ -14,6 +15,9 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
   const [backText, setBackText] = useState('');
   const [suggestion, setSuggestion] = useState('');
   const [isPredicting, setIsPredicting] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const backTextRef = useRef<HTMLTextAreaElement>(null);
 
@@ -52,7 +56,7 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
       } finally {
         setIsPredicting(false);
       }
-    }, 800); // 800ms debounce
+    }, 800);
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -64,6 +68,35 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
       e.preventDefault();
       setBackText(suggestion);
       setSuggestion('');
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!frontText.trim()) return;
+    setIsRegenerating(true);
+
+    try {
+      const response = await fetch('/api/autocomplete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          frontText,
+          feedback: feedback.trim() || undefined,
+          previousBack: backText || suggestion || undefined,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBackText(data.text);
+        setSuggestion('');
+        setFeedback('');
+        setShowFeedback(false);
+      }
+    } catch (error) {
+      VibeLogger.error('Failed to regenerate', error);
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -91,7 +124,7 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
         {/* Ghost text overlay */}
         {!backText && suggestion && (
           <div className="absolute inset-0 p-3 text-sm font-mono text-muted pointer-events-none whitespace-pre-wrap overflow-hidden">
-            {suggestion}
+            <LatexText text={suggestion} />
           </div>
         )}
         
@@ -107,8 +140,58 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
         />
         
         {!backText && suggestion && (
-          <div className="absolute bottom-2 right-2 text-xs font-mono text-muted bg-background/80 px-2 py-1 rounded">
+          <div className="absolute bottom-2 right-2 text-xs font-mono text-muted bg-background/80 px-2 py-1 rounded z-20">
             Press <kbd className="border border-border rounded px-1">Tab</kbd> to accept
+          </div>
+        )}
+      </div>
+
+      {/* Preview rendered LaTeX if the back text contains $ */}
+      {backText && backText.includes('$') && (
+        <div className="bg-card-hover border border-border rounded p-3 text-sm font-mono">
+          <div className="text-xs text-muted mb-1 uppercase tracking-wider">Preview</div>
+          <LatexText text={backText} />
+        </div>
+      )}
+
+      {/* Regenerate section */}
+      <div className="flex items-center gap-2">
+        <button 
+          type="button"
+          onClick={() => {
+            if (showFeedback) {
+              handleRegenerate();
+            } else if (backText || suggestion) {
+              setShowFeedback(true);
+            } else {
+              handleRegenerate();
+            }
+          }}
+          disabled={isRegenerating || !frontText.trim()}
+          className="text-muted hover:text-accent border border-border hover:border-accent/30 px-3 py-1.5 rounded text-xs font-mono flex items-center gap-1.5 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={14} className={isRegenerating ? 'animate-spin' : ''} />
+          {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+        </button>
+
+        {showFeedback && (
+          <div className="flex-1 flex gap-2 items-center animate-fade-in">
+            <input
+              type="text"
+              value={feedback}
+              onChange={e => setFeedback(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleRegenerate(); } }}
+              placeholder="Feedback (e.g. 'shorter', 'include formula', 'more specific')..."
+              autoFocus
+              className="flex-1 bg-transparent border border-border rounded px-2 py-1.5 text-xs font-mono text-foreground focus:outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={() => { setShowFeedback(false); setFeedback(''); }}
+              className="text-xs font-mono text-muted hover:text-foreground px-1"
+            >
+              ✕
+            </button>
           </div>
         )}
       </div>
@@ -124,6 +207,8 @@ export function CreateCardForm({ deckId }: CreateCardFormProps) {
             setFrontText('');
             setBackText('');
             setSuggestion('');
+            setFeedback('');
+            setShowFeedback(false);
           }, 100);
         }}
       >

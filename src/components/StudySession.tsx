@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { gradeCard, getDueCards } from '@/app/actions/card';
 import { RotateCcw, ChevronRight, CheckCircle2, Clock, Brain, Zap, Trophy, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { LatexText } from './LatexText';
 
 interface Card {
   id: string;
@@ -194,7 +195,7 @@ export function StudySession({ deckId, deckTitle, initialCards }: StudySessionPr
           <div className={`w-full text-center transition-all duration-300 ${isFlipped ? 'mb-6 pb-6 border-b border-border' : ''}`}>
             <div className="text-xs font-mono text-accent uppercase tracking-widest mb-4">Question</div>
             <div className="text-lg sm:text-xl font-mono text-foreground leading-relaxed whitespace-pre-wrap">
-              {currentCard?.front_text}
+              <LatexText text={currentCard?.front_text || ''} />
             </div>
           </div>
 
@@ -203,7 +204,7 @@ export function StudySession({ deckId, deckTitle, initialCards }: StudySessionPr
             <div className="w-full text-center animate-fade-in">
               <div className="text-xs font-mono text-muted uppercase tracking-widest mb-4">Answer</div>
               <div className="text-lg sm:text-xl font-mono text-foreground leading-relaxed whitespace-pre-wrap">
-                {currentCard?.back_text}
+                <LatexText text={currentCard?.back_text || ''} />
               </div>
             </div>
           )}

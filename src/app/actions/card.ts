@@ -217,8 +217,8 @@ export async function gradeCard(cardId: string, quality: number, deckId: string)
   // Calculate next review date
   const next_review = new Date();
   if (interval === 0) {
-    // Show again soon (1 minute from now for "Again")
-    next_review.setMinutes(next_review.getMinutes() + 1);
+    // "Again" — card is immediately due so it shows up on re-entry
+    // (within the session, the client re-adds it to the local queue)
   } else {
     next_review.setDate(next_review.getDate() + interval);
   }

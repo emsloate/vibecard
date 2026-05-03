@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Trash2, GraduationCap } from "lucide-react";
 import CsvImporter from "@/components/CsvImporter";
 import { CreateCardForm } from "@/components/CreateCardForm";
+import { LatexText } from "@/components/LatexText";
 
 export const dynamic = 'force-dynamic';
 
@@ -80,8 +81,8 @@ export default async function DeckDetailPage({ params }: { params: { id: string 
               cards?.map((card) => (
                 <div key={card.id} className="p-4 hover:bg-card-hover transition-colors group flex items-start justify-between gap-4">
                   <div className="flex-1 font-mono text-sm flex flex-col gap-2">
-                    <div className="text-foreground break-words"><span className="text-accent text-xs mr-2">Q:</span>{card.front_text}</div>
-                    <div className="text-muted break-words"><span className="text-muted text-xs mr-2">A:</span>{card.back_text}</div>
+                    <div className="text-foreground break-words"><span className="text-accent text-xs mr-2">Q:</span><LatexText text={card.front_text} /></div>
+                    <div className="text-muted break-words"><span className="text-muted text-xs mr-2">A:</span><LatexText text={card.back_text} /></div>
                     
                     <div className="flex gap-4 mt-2 text-xs text-muted">
                       <span>EF: {card.ease_factor}</span>

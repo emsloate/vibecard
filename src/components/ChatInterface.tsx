@@ -1,14 +1,17 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
+import { useRouter } from 'next/navigation';
 import { Send, Bot, User, Wand2, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { VibeLogger } from '@/utils/VibeLogger';
 
 export function ChatInterface() {
+  const router = useRouter();
   const { messages, sendMessage, status, error, clearError } = useChat();
   const [input, setInput] = useState('');
   const [isHarvesting, setIsHarvesting] = useState(false);
+  const [harvestResult, setHarvestResult] = useState<{ count: number } | null>(null);
   const isLoading = status === 'submitted' || status === 'streaming';
 
   const getMessageText = (m: any) => {
@@ -23,6 +26,7 @@ export function ChatInterface() {
     if (messages.length === 0) return;
     
     setIsHarvesting(true);
+    setHarvestResult(null);
     VibeLogger.info('Triggering manual card harvest from UI');
     const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${getMessageText(m)}`).join('\n');
     
@@ -33,7 +37,11 @@ export function ChatInterface() {
         body: JSON.stringify({ transcript }),
       });
       if (res.ok) {
+        const data = await res.json();
         VibeLogger.info('Harvest UI request succeeded');
+        setHarvestResult({ count: data.count || 0 });
+        // Refresh server components (StagingQueue) to show new cards
+        router.refresh();
       } else {
         VibeLogger.error(`Harvest UI request failed with status: ${res.status}`);
       }
@@ -48,7 +56,6 @@ export function ChatInterface() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
     clearError();
-    // v3 useChat: sendMessage accepts { text: string }
     sendMessage({ text: input });
     setInput('');
   };
@@ -62,14 +69,21 @@ export function ChatInterface() {
           </h2>
           <p className="text-xs text-muted font-mono mt-1">Explore concepts to generate cards</p>
         </div>
-        <button
-          onClick={handleHarvest}
-          disabled={messages.length === 0 || isHarvesting || isLoading}
-          className="bg-accent text-black px-3 py-1.5 rounded text-xs font-bold font-mono flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          <Wand2 size={14} />
-          {isHarvesting ? 'Harvesting...' : 'Harvest Cards'}
-        </button>
+        <div className="flex items-center gap-2">
+          {harvestResult && (
+            <span className="text-xs font-mono text-green-400 animate-fade-in">
+              ✓ {harvestResult.count} cards staged
+            </span>
+          )}
+          <button
+            onClick={handleHarvest}
+            disabled={messages.length === 0 || isHarvesting || isLoading}
+            className="bg-accent text-black px-3 py-1.5 rounded text-xs font-bold font-mono flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            <Wand2 size={14} />
+            {isHarvesting ? 'Harvesting...' : 'Harvest Cards'}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

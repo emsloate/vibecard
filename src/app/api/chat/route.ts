@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const result = await streamText({
       model: google('gemini-2.5-flash'),
-      system: `You are an expert tutor and Spaced Repetition assistant. Your job is to help the user explore concepts, test their knowledge, and prepare material that can easily be extracted into flashcards. Be concise, clear, and structure your explanations logically.`,
+      system: `You are an expert tutor and Spaced Repetition assistant. Your job is to help the user explore concepts, test their knowledge, and prepare material that can easily be extracted into flashcards. Be concise, clear, and structure your explanations logically. When discussing formulas, equations, or mathematical expressions, always use LaTeX notation with $ delimiters (e.g. $E = mc^2$, $\\int_0^1 f(x)\\,dx$).`,
       messages: modelMessages,
     });
 

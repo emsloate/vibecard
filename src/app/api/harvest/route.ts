@@ -15,14 +15,17 @@ export async function POST(req: Request) {
     VibeLogger.info('Starting card harvest from chat transcript');
 
     const { object } = await generateObject({
-      model: google('gemini-2.5-pro'),
+      model: google('gemini-2.5-flash'),
       schema: z.object({
         cards: z.array(z.object({
           front_text: z.string().describe("The front side question or prompt of the flashcard"),
           back_text: z.string().describe("The back side answer of the flashcard")
         }))
       }),
-      prompt: `Extract high-quality spaced repetition flashcards from the following conversation transcript. Break down complex ideas into concise, atomic flashcards. 
+      prompt: `Extract high-quality spaced repetition flashcards from the following conversation transcript. Rules:
+- Break down complex ideas into concise, atomic flashcards.
+- Each answer should be 1-2 sentences maximum.
+- Use LaTeX notation ($...$) for any formulas, equations, or mathematical expressions.
       
 Transcript:
 ${transcript}`
