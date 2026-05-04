@@ -25,14 +25,19 @@ export async function POST(req: Request) {
     }
 
     const { text } = await generateText({
-      model: google('gemini-2.0-flash-lite'),
+      model: google('gemini-2.5-flash'),
       system: SYSTEM_PROMPT,
       prompt,
     });
 
     VibeLogger.info(`Generated autocomplete for: "${frontText.substring(0, 20)}..."`);
     return Response.json({ text });
-  } catch (error) {
+  } catch (error: any) {
+    // Check for rate limit errors
+    if (error?.statusCode === 429 || error?.data?.error?.code === 429) {
+      VibeLogger.error('Autocomplete rate limited');
+      return Response.json({ text: '', rateLimited: true }, { status: 200 });
+    }
     VibeLogger.error('Autocomplete Error:', error);
     return new Response('Internal Server Error', { status: 500 });
   }
