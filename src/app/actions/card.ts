@@ -238,7 +238,42 @@ export async function gradeCard(cardId: string, quality: number, deckId: string)
     throw new Error('Failed to grade card')
   }
 
+  // Log the review event for stats tracking
+  await supabase
+    .from('reviews')
+    .insert({ card_id: cardId, deck_id: deckId, quality })
+    .then(({ error: reviewError }) => {
+      if (reviewError) VibeLogger.error('Failed to log review', reviewError);
+    });
+
   revalidatePath(`/decks/${deckId}`)
   return { ease_factor, interval, reps, next_review: next_review.toISOString() }
+}
+
+/**
+ * Log that a user cleared all due cards for a deck.
+ * Used for streak calculation.
+ */
+export async function logSessionComplete(deckId: string) {
+  const supabase = createServerSupabaseClient()
+
+  // Avoid duplicate completions for the same deck on the same day
+  const today = new Date().toISOString().split('T')[0];
+  const { data: existing } = await supabase
+    .from('completions')
+    .select('id')
+    .eq('deck_id', deckId)
+    .eq('completed_at', today)
+    .maybeSingle()
+
+  if (!existing) {
+    const { error } = await supabase
+      .from('completions')
+      .insert({ deck_id: deckId, completed_at: today })
+
+    if (error) {
+      VibeLogger.error('Failed to log session completion', error);
+    }
+  }
 }
 

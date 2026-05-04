@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { gradeCard, getDueCards } from '@/app/actions/card';
+import { gradeCard, getDueCards, logSessionComplete } from '@/app/actions/card';
 import { RotateCcw, ChevronRight, CheckCircle2, Clock, Brain, Zap, Trophy, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { LatexText } from './LatexText';
@@ -93,6 +93,8 @@ export function StudySession({ deckId, deckTitle, initialCards }: StudySessionPr
           setCards(freshDue);
           setCurrentIndex(0);
         } else {
+          // All due cards cleared — log completion for streak tracking
+          logSessionComplete(deckId);
           setSessionComplete(true);
         }
       } else {

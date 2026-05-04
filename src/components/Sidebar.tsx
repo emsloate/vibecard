@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Home, Layers } from 'lucide-react';
+import { Home, Layers, BarChart3 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 export default function Sidebar() {
@@ -24,6 +24,13 @@ export default function Sidebar() {
         >
           <Layers size={16} />
           <span>Decks</span>
+        </Link>
+        <Link 
+          href="/stats"
+          className="flex items-center gap-3 px-3 py-2 rounded text-muted hover:text-foreground hover:bg-card-hover transition-colors"
+        >
+          <BarChart3 size={16} />
+          <span>Stats</span>
         </Link>
       </nav>
 
